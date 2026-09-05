@@ -11,6 +11,7 @@ from .raw import ItemServiceRaw as _ItemServiceRaw
 
 class ItemService(_service_base.CacheableServiceBase):
     async def to_item(self, item_name: str, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_ItemDesign]:
+        """Returns PSS item designs whose names contain the requested item name."""
         items = await self.list_item_designs(client_date_time, design_version)
         result = list(filter(lambda item: item_name.lower() in item.item_design_name.lower(), items))
 
@@ -18,12 +19,14 @@ class ItemService(_service_base.CacheableServiceBase):
 
     @_service_base.cache_endpoint("ItemDesignActionVersion")
     async def list_item_design_actions(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_ItemDesignAction]:
+        """Returns PSS item design actions from the ``ItemService/ListItemDesignActions`` endpoint."""
         production_server = await self.get_production_server()
         result = await _ItemServiceRaw.list_item_design_actions(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version)
         return result
 
     @_service_base.cache_endpoint("ItemDesignVersion")
     async def list_item_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_ItemDesign]:
+        """Returns PSS item designs from the ``ItemService/ListItemDesigns2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _ItemServiceRaw.list_item_designs_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result

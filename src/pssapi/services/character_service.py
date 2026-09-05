@@ -13,6 +13,7 @@ from .raw import CharacterServiceRaw as _CharacterServiceRaw
 
 class CharacterService(_service_base.CacheableServiceBase):
     async def to_character(self, character_name: str, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_CharacterDesign]:
+        """Returns PSS character designs whose names contain the requested character name."""
         characters = await self.list_all_character_designs(client_date_time, design_version)
         result = list(filter(lambda character: character_name.lower() in character.character_design_name.lower(), characters))
 
@@ -20,28 +21,33 @@ class CharacterService(_service_base.CacheableServiceBase):
 
     @_service_base.cache_endpoint("CharacterDesignActionVersion")
     async def list_all_character_design_actions(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_CharacterDesignAction]:
+        """Returns the PSS character design actions from the ``CharacterService/ListAllCharacterDesignActions`` endpoint."""
         production_server = await self.get_production_server()
         result = await _CharacterServiceRaw.list_all_character_design_actions(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version)
         return result
 
     @_service_base.cache_endpoint("CharacterDesignVersion")
     async def list_all_character_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_CharacterDesign]:
+        """Returns the PSS character designs from the ``CharacterService/ListAllCharacterDesigns2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _CharacterServiceRaw.list_all_character_designs_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
 
     @_service_base.cache_endpoint("DrawDesignVersion")
     async def list_all_draw_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_DrawDesign]:
+        """Returns the PSS character draw designs from the ``CharacterService/ListAllDrawDesigns`` endpoint."""
         production_server = await self.get_production_server()
         result = await _CharacterServiceRaw.list_all_draw_designs(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
 
     async def prestige_character_from(self, character_design_id: int) -> _List[_Prestige]:
+        """Returns PSS prestige options for characters that can be prestiged from the specified character design."""
         production_server = await self.get_production_server()
         result = await _CharacterServiceRaw.prestige_character_from(production_server, character_design_id)
         return result
 
     async def prestige_character_to(self, character_design_id: int) -> _List[_Prestige]:
+        """Returns PSS prestige options for characters that can be prestiged to the specified character design."""
         production_server = await self.get_production_server()
         result = await _CharacterServiceRaw.prestige_character_to(production_server, character_design_id)
         return result

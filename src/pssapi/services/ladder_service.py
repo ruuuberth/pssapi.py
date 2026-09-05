@@ -8,11 +8,13 @@ from .raw import LadderServiceRaw as _LadderServiceRaw
 
 class LadderService(_service_base.ServiceBase):
     async def list_users_by_championship_score_ranking(self, access_token: str, from_: int, to: int) -> _List[_User]:
+        """Returns PSS users ordered by championship score from the ``LadderService/ListUsersByChampionshipScoreRanking`` endpoint."""
         production_server = await self.get_production_server()
         result = await _LadderServiceRaw.list_users_by_championship_score_ranking(production_server, access_token, from_, to)
         return result
 
     async def list_users_by_ranking(self, access_token: str, from_: int, to: int) -> _List[_User]:
+        """Returns PSS users ordered by ranking from the ``LadderService/ListUsersByRanking`` endpoint."""
         production_server = await self.get_production_server()
         result = await _LadderServiceRaw.list_users_by_ranking(production_server, access_token, from_, to)
         return result

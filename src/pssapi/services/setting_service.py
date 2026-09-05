@@ -11,12 +11,14 @@ from .raw import SettingServiceRaw as _SettingServiceRaw
 
 class SettingService(_service_base.CacheableServiceBase):
     async def get_latest_version(self, device_type: str) -> _Setting:
+        """Returns the latest PSS design-version settings from the ``SettingService/GetLatestVersion4`` endpoint."""
         production_server = await self.get_production_server()
         result = await _SettingServiceRaw.get_latest_version_4(production_server, device_type, self.language_key)
         return result
 
     @_service_base.cache_endpoint("NewsDesignVersion")
     async def list_all_news_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_NewsDesign]:
+        """Returns the PSS news designs from the ``SettingService/ListAllNewsDesigns`` endpoint."""
         production_server = await self.get_production_server()
         result = await _SettingServiceRaw.list_all_news_designs(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result

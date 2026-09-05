@@ -29,6 +29,7 @@ class BattleService(_service_base.ServiceBase):
     utils = _BattleServiceUtils()
 
     async def get_engagement(self, access_token: str, checksum: str, client_date_time: _datetime.datetime, engagement_id: int) -> _Engagement:
+        """Returns the PSS engagement identified by ``engagement_id`` from the ``BattleService/GetEngagement`` endpoint."""
         production_server = await self.get_production_server()
         result = await _BattleServiceRaw.get_engagement(production_server, access_token, checksum, client_date_time, engagement_id)
         return result

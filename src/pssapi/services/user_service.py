@@ -39,16 +39,19 @@ class UserService(_service_base.ServiceBase):
     utils = _UserServiceUtils()
 
     async def accept_friend_request(self, access_token: str, friend_user_id: int) -> _entities.Friend:
+        """Returns the PSS friend relationship created by the ``UserService/AcceptFriendRequest`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.accept_friend_request(production_server, access_token, friend_user_id)
         return result
 
     async def add_friend(self, access_token: str, friend_user_id: int) -> _entities.Friend:
+        """Returns the PSS friend relationship created by the ``UserService/AddFriend2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.add_friend_2(production_server, access_token, friend_user_id)
         return result
 
     async def decline_friend_request(self, access_token: str, friend_user_id: int) -> _entities.Friend:
+        """Returns the PSS friend relationship after declining a request from the ``UserService/DeclineFriendRequest`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.decline_friend_request(production_server, access_token, friend_user_id)
         return result
@@ -72,6 +75,8 @@ class UserService(_service_base.ServiceBase):
         signal: bool = None,
     ) -> _entities.UserLogin:
         """
+        Returns the PSS user login result from the ``UserService/DeviceLogin17`` endpoint.
+
         This is a shortcut to `UserService.device_login_17`.
         """
         return await self.device_login_17(
@@ -112,6 +117,7 @@ class UserService(_service_base.ServiceBase):
         refresh_token: str = None,
         signal: bool = None,
     ) -> _entities.UserLogin:
+        """Returns the PSS user login result from the ``UserService/DeviceLogin17`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.device_login_17(
             production_server,
@@ -155,30 +161,36 @@ class UserService(_service_base.ServiceBase):
         _List[_entities.UserSkin],
         _List[_entities.UserStarSystem],
     ]:
+        """Returns the user's complete PSS data set from the ``UserService/ListAllUserDataFirst2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_all_user_data_first_2(production_server, access_token, user_id)
         return result
 
     async def list_friends(self, user_id: int, access_token: str) -> _entities.ListFriends:
+        """Returns the user's PSS friend list from the ``UserService/ListFriends`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_friends(production_server, user_id, access_token)
         return result
 
     async def list_skin_sets(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_entities.SkinSet]:
+        """Returns PSS skin sets from the ``UserService/ListSkinSets2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_skin_sets_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
 
     async def list_skins(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_entities.Skin]:
+        """Returns PSS skins from the ``UserService/ListSkins2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_skins_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
 
     async def remove_friend(self, access_token: str, friend_user_id: int) -> None:
+        """Removes a PSS friend relationship through the ``UserService/RemoveFriend`` endpoint."""
         production_server = await self.get_production_server()
         await _UserServiceRaw.remove_friend(production_server, access_token, friend_user_id)
 
     async def search_users(self, search_string: str) -> _List[_entities.User]:
+        """Returns PSS users matching the search string from the ``UserService/SearchUsers`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.search_users(production_server, search_string)
         return result
@@ -203,6 +215,7 @@ class UserService(_service_base.ServiceBase):
         signal: bool = None,
         ticket: str = None,
     ) -> _entities.UserLogin:
+        """Returns the PSS user login result from the ``UserService/SteamLogin8`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.steam_login_8(
             production_server,
@@ -229,6 +242,7 @@ class UserService(_service_base.ServiceBase):
     async def user_email_password_authorize(
         self, access_token: str, checksum: str, client_date_time: _datetime.datetime, device_key: str, email: str, is_web: bool, language_key: str, password: str
     ) -> _entities.UserEmailPasswordAuthorize:
+        """Returns the PSS email/password authorization result from the ``UserService/UserEmailPasswordAuthorize4`` endpoint."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.user_email_password_authorize_4(
             production_server, access_token, checksum, _utils.datetime.convert_to_pss_timestamp(client_date_time), device_key, email, is_web, language_key, password

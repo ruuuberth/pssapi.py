@@ -15,47 +15,55 @@ from .raw import RoomServiceRaw as _RoomServiceRaw
 
 class RoomService(_service_base.CacheableServiceBase):
     async def get_missile_design(self, missile_design_id: int) -> _MissileDesign:
+        """Returns the PSS missile design identified by ``missile_design_id`` from the ``RoomService/GetMissileDesign`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.get_missile_design(production_server, self.language_key, missile_design_id)
         return result
 
     async def get_room_design(self, room_design_id: int) -> _RoomDesign:
+        """Returns the PSS room design identified by ``room_design_id`` from the ``RoomService/GetRoomDesign`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.get_room_design(production_server, self.language_key, room_design_id)
         return result
 
     @_service_base.cache_endpoint("ActionTypeVersion")
     async def list_action_types(self, design_version: int = None) -> _List[_ActionType]:
+        """Returns the PSS room action types from the ``RoomService/ListActionTypes2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.list_action_types_2(production_server, design_version, self.language_key)
         return result
 
     @_service_base.cache_endpoint("ConditionTypeVersion")
     async def list_condition_types(self, design_version: int = None) -> _List[_ConditionType]:
+        """Returns the PSS room condition types from the ``RoomService/ListConditionTypes2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.list_condition_types_2(production_server, design_version, self.language_key)
         return result
 
     @_service_base.cache_endpoint("CraftDesignVersion")
     async def list_craft_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_CraftDesign]:
+        """Returns the PSS craft designs from the ``RoomService/ListCraftDesigns`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.list_craft_designs(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version)
         return result
 
     @_service_base.cache_endpoint("MissileDesignVersion")
     async def list_missile_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_MissileDesign]:
+        """Returns the PSS missile designs from the ``RoomService/ListMissileDesigns`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.list_missile_designs(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version)
         return result
 
     @_service_base.cache_endpoint("RoomDesignPurchaseVersion")
     async def list_room_design_purchase(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_RoomDesignPurchase]:
+        """Returns the PSS room design purchases from the ``RoomService/ListRoomDesignPurchase`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.list_room_design_purchase(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version)
         return result
 
     @_service_base.cache_endpoint("RoomDesignVersion")
     async def list_room_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_RoomDesign]:
+        """Returns the PSS room designs from the ``RoomService/ListRoomDesigns2`` endpoint."""
         production_server = await self.get_production_server()
         result = await _RoomServiceRaw.list_room_designs_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
