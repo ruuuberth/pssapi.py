@@ -29,7 +29,7 @@ async def test_character_designs_use_modern_raw_client(service, monkeypatch) -> 
     character_service, raw = service
     character_service.get_settings = _settings("CharacterDesignVersion", 42)
     monkeypatch.setattr(
-        "pssapi.services.character_service._service_base.parse_entity_list",
+        "pssapi.services.character_service._parse_entity_list",
         lambda response, parent_tag, entity_type: [],
     )
 
@@ -50,7 +50,7 @@ async def test_character_actions_use_modern_raw_client(service, monkeypatch) -> 
     character_service, raw = service
     character_service.get_settings = _settings("CharacterDesignActionVersion", 42)
     monkeypatch.setattr(
-        "pssapi.services.character_service._service_base.parse_entity_list",
+        "pssapi.services.character_service._parse_entity_list",
         lambda response, parent_tag, entity_type: [],
     )
 
@@ -70,7 +70,7 @@ async def test_draw_designs_use_modern_raw_client(service, monkeypatch) -> None:
     character_service, raw = service
     character_service.get_settings = _settings("DrawDesignVersion", 42)
     monkeypatch.setattr(
-        "pssapi.services.character_service._service_base.parse_entity_list",
+        "pssapi.services.character_service._parse_entity_list",
         lambda response, parent_tag, entity_type: [],
     )
 
@@ -90,7 +90,7 @@ async def test_draw_designs_use_modern_raw_client(service, monkeypatch) -> None:
 async def test_prestige_endpoints_use_modern_raw_client(service, monkeypatch, method: str) -> None:
     character_service, raw = service
     monkeypatch.setattr(
-        "pssapi.services.character_service._service_base.parse_entity_list",
+        "pssapi.services.character_service._parse_entity_list",
         lambda response, parent_tag, entity_type: [],
     )
 
