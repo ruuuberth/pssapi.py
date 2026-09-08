@@ -2,11 +2,55 @@ from . import client_base as _client_base
 from . import entities as _entities
 from . import enums as _enums
 from . import utils as _utils
+from .cache import MemoryCache
+from .config import PssApiConfig
+from .raw.client import RawApiClient
+from .transport import PssApiTransport
 
 
 class PssApiClient(_client_base.PssApiClientBase):
-    def __init__(self, device_type: "_enums.DeviceType" = None, language_key: "_enums.LanguageKey" = None, production_server: str = None):
+    """Pixel Starships API client with legacy services and a modern raw transport."""
+
+    def __init__(
+        self,
+        device_type: "_enums.DeviceType" = None,
+        language_key: "_enums.LanguageKey" = None,
+        production_server: str = None,
+        *,
+        config: PssApiConfig | None = None,
+        cache: MemoryCache | None = None,
+    ):
         super().__init__(device_type, language_key, production_server)
+        self._modern_config = config or PssApiConfig.from_env()
+        self._modern_transport = PssApiTransport(self._modern_config)
+        self._modern_cache = cache
+        self._raw_client = RawApiClient(
+            self._modern_transport,
+            production_server=production_server,
+            config=self._modern_config,
+            cache=cache,
+        )
+
+    @property
+    def raw(self) -> RawApiClient:
+        """Generic low-level client for endpoints without a typed wrapper yet."""
+        return self._raw_client
+
+    @property
+    def transport(self) -> PssApiTransport:
+        """Reusable pooled HTTP transport used by the modern raw client."""
+        return self._modern_transport
+
+    async def close(self) -> None:
+        """Release pooled HTTP connections created by the modern transport."""
+        await self._modern_transport.close()
+
+    async def __aenter__(self) -> "PssApiClient":
+        await self._modern_transport.start()
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.close()
 
     def _update_services(self):
         super()._update_services()
