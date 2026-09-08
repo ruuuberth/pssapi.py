@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Mapping
 from urllib.parse import urljoin
 
@@ -9,14 +10,14 @@ from .cache import Cache, make_cache_key
 from .transport import AsyncTransport
 
 
+@dataclass(frozen=True, slots=True)
 class RawResponse:
     """Lossless HTTP response wrapper for endpoints not yet modeled by pssapi."""
 
-    def __init__(self, response: httpx.Response) -> None:
-        self.status_code = response.status_code
-        self.headers = dict(response.headers)
-        self.content = response.content
-        self.url = str(response.url)
+    status_code: int
+    headers: Mapping[str, str]
+    content: bytes
+    url: str
 
     @property
     def text(self) -> str:
@@ -94,7 +95,12 @@ class RawApiClient:
             content=content,
             headers=dict(headers or {}),
         )
-        result = RawResponse(response)
+        result = RawResponse(
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            content=response.content,
+            url=str(response.url),
+        )
 
         if (
             use_cache
