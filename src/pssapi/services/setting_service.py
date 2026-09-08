@@ -15,6 +15,9 @@ class SettingService(_service_base.CacheableServiceBase):
         production_server: str,
         device_type: str,
     ) -> _Setting:
+        # The bootstrap endpoint tells us which regional API server to use.
+        # Keep the modern raw client aligned with that server before calling v4.
+        self.client.raw.production_server = production_server
         response = await self.client.raw.call(
             "SettingService",
             "GetLatestVersion4",
