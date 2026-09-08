@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, TypeVar
 from xml.etree import ElementTree
 
-import pssapi.entities as _entities
 import pssapi.utils as _utils
 from pssapi.raw_client import RawResponse
 
