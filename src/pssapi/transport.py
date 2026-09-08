@@ -1,85 +1,82 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Mapping
 
-import aiohttp
-
-from .config import PssApiConfig
+import httpx
 
 
-_RETRYABLE_STATUS = frozenset({408, 425, 429, 500, 502, 503, 504})
+@dataclass(frozen=True, slots=True)
+class TransportConfig:
+    timeout: float = 30.0
+    max_connections: int = 20
+    max_keepalive_connections: int = 10
+    keepalive_expiry: float = 30.0
+    retries: int = 2
+    retry_backoff: float = 0.5
+    retry_statuses: frozenset[int] = frozenset({429, 500, 502, 503, 504})
+    verify: bool = True
 
 
-class PssApiHttpError(RuntimeError):
-    """HTTP error raised by the modern transport."""
+class AsyncTransport:
+    """Reusable HTTP transport with connection pooling and bounded retries."""
 
-    def __init__(self, status: int, url: str, body: str = "") -> None:
-        self.status = status
-        self.url = url
-        self.body = body
-        super().__init__(f"PSS API returned HTTP {status} for {url}")
-
-
-class PssApiTransport:
-    """Reusable aiohttp transport with connection pooling and bounded retries."""
-
-    def __init__(self, config: PssApiConfig | None = None) -> None:
-        self.config = config or PssApiConfig.from_env()
-        self._session: aiohttp.ClientSession | None = None
-
-    async def start(self) -> "PssApiTransport":
-        if self._session is not None and not self._session.closed:
-            return self
-        timeout = aiohttp.ClientTimeout(total=self.config.timeout, connect=self.config.connect_timeout)
-        connector = aiohttp.TCPConnector(
-            limit=self.config.max_connections,
-            limit_per_host=self.config.max_connections,
-            keepalive_timeout=30,
+    def __init__(self, config: TransportConfig | None = None, **client_kwargs: Any) -> None:
+        self.config = config or TransportConfig()
+        limits = httpx.Limits(
+            max_connections=self.config.max_connections,
+            max_keepalive_connections=self.config.max_keepalive_connections,
+            keepalive_expiry=self.config.keepalive_expiry,
         )
-        self._session = aiohttp.ClientSession(
-            timeout=timeout,
-            connector=connector,
-            headers={"User-Agent": self.config.user_agent},
+        self._client = httpx.AsyncClient(
+            timeout=self.config.timeout,
+            limits=limits,
+            verify=self.config.verify,
+            **client_kwargs,
         )
+
+    @property
+    def client(self) -> httpx.AsyncClient:
+        return self._client
+
+    async def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        method = method.upper()
+        retryable_method = method in {"GET", "HEAD", "OPTIONS"}
+        attempts = self.config.retries + 1 if retryable_method else 1
+
+        for attempt in range(attempts):
+            try:
+                response = await self._client.request(method, url, **kwargs)
+            except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout, httpx.WriteError):
+                if attempt + 1 >= attempts:
+                    raise
+                await self._sleep(attempt)
+                continue
+
+            if response.status_code not in self.config.retry_statuses or attempt + 1 >= attempts:
+                return response
+
+            retry_after = response.headers.get("Retry-After")
+            await self._sleep(attempt, retry_after)
+
+        raise RuntimeError("HTTP retry loop terminated unexpectedly")
+
+    async def _sleep(self, attempt: int, retry_after: str | None = None) -> None:
+        if retry_after:
+            try:
+                delay = max(0.0, float(retry_after))
+            except ValueError:
+                delay = self.config.retry_backoff * (2**attempt)
+        else:
+            delay = self.config.retry_backoff * (2**attempt)
+        await asyncio.sleep(delay)
+
+    async def aclose(self) -> None:
+        await self._client.aclose()
+
+    async def __aenter__(self) -> AsyncTransport:
         return self
 
-    async def close(self) -> None:
-        if self._session is not None and not self._session.closed:
-            await self._session.close()
-
-    async def __aenter__(self) -> "PssApiTransport":
-        return await self.start()
-
-    async def __aexit__(self, *_: object) -> None:
-        await self.close()
-
-    async def request(
-        self,
-        method: str,
-        url: str,
-        *,
-        params: Mapping[str, Any] | None = None,
-        data: str | bytes | None = None,
-        headers: Mapping[str, str] | None = None,
-    ) -> bytes:
-        await self.start()
-        assert self._session is not None
-
-        for attempt in range(self.config.retries + 1):
-            try:
-                async with self._session.request(method.upper(), url, params=params, data=data, headers=headers) as response:
-                    body = await response.read()
-                    if response.status >= 400:
-                        if response.status not in _RETRYABLE_STATUS or attempt >= self.config.retries:
-                            raise PssApiHttpError(response.status, str(response.url), body.decode("utf-8", errors="replace"))
-                    else:
-                        return body
-            except (aiohttp.ClientError, asyncio.TimeoutError):
-                if attempt >= self.config.retries:
-                    raise
-
-            await asyncio.sleep(self.config.retry_backoff * (2**attempt))
-
-        raise RuntimeError("unreachable")
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+        await self.aclose()

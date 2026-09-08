@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-import asyncio
+import hashlib
+import json
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
+
+
+class Cache(Protocol):
+    async def get(self, key: str) -> Any | None: ...
+    async def set(self, key: str, value: Any, ttl: float | None = None) -> None: ...
+    async def delete(self, key: str) -> None: ...
+    async def clear(self) -> None: ...
 
 
 @dataclass(slots=True)
@@ -13,37 +21,32 @@ class _Entry:
 
 
 class MemoryCache:
-    """Small async-safe in-memory cache used by the modern raw client."""
+    """Small process-local async cache suitable for versioned API catalogs."""
 
-    def __init__(self, default_ttl: float | None = None) -> None:
-        self.default_ttl = default_ttl
-        self._items: dict[str, _Entry] = {}
-        self._lock = asyncio.Lock()
+    def __init__(self) -> None:
+        self._data: dict[str, _Entry] = {}
 
     async def get(self, key: str) -> Any | None:
-        async with self._lock:
-            entry = self._items.get(key)
-            if entry is None:
-                return None
-            if entry.expires_at is not None and entry.expires_at <= time.monotonic():
-                self._items.pop(key, None)
-                return None
-            return entry.value
+        entry = self._data.get(key)
+        if entry is None:
+            return None
+        if entry.expires_at is not None and entry.expires_at <= time.monotonic():
+            self._data.pop(key, None)
+            return None
+        return entry.value
 
     async def set(self, key: str, value: Any, ttl: float | None = None) -> None:
-        ttl = self.default_ttl if ttl is None else ttl
-        expires_at = None if ttl is None else time.monotonic() + ttl
-        async with self._lock:
-            self._items[key] = _Entry(value, expires_at)
+        expires_at = None if ttl is None else time.monotonic() + max(0.0, ttl)
+        self._data[key] = _Entry(value, expires_at)
 
     async def delete(self, key: str) -> None:
-        async with self._lock:
-            self._items.pop(key, None)
+        self._data.pop(key, None)
 
     async def clear(self) -> None:
-        async with self._lock:
-            self._items.clear()
+        self._data.clear()
 
-    async def __len__(self) -> int:
-        async with self._lock:
-            return len(self._items)
+
+def make_cache_key(*parts: Any) -> str:
+    """Create a stable, compact cache key from JSON-compatible values."""
+    payload = json.dumps(parts, sort_keys=True, separators=(",", ":"), default=str).encode()
+    return hashlib.sha256(payload).hexdigest()
