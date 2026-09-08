@@ -13,10 +13,6 @@ RX_ACCESS_TOKEN_IN_RESPONSE_BODY: re.Pattern = re.compile(r"accessToken=\".*?\""
 ACCESS_TOKEN_IN_RESPONSE_BODY_REPLACEMENT: str = 'accessToken="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"'
 
 
-RX_ACCESS_TOKEN_IN_RESPONSE_BODY: re.Pattern = re.compile(r"accessToken=\".*?\"")
-ACCESS_TOKEN_IN_RESPONSE_BODY_REPLACEMENT: str = 'accessToken="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"'
-
-
 @pytest.fixture(scope="session")
 def access_token() -> str:
     return os.environ.get("PSS_ACCESS_TOKEN")
