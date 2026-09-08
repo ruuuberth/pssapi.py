@@ -3,6 +3,7 @@ from typing import List as _List
 import pssapi.services.service_base as _service_base
 
 from ..entities import AchievementDesign as _AchievementDesign
+from ..parsing import parse_entity_list as _parse_entity_list
 
 
 class AchievementService(_service_base.CacheableServiceBase):
@@ -18,4 +19,4 @@ class AchievementService(_service_base.CacheableServiceBase):
             params=params,
             use_cache=False,
         )
-        return _service_base.parse_entity_list(response, "AchievementDesigns", _AchievementDesign)
+        return _parse_entity_list(response, "AchievementDesigns", _AchievementDesign)
