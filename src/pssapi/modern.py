@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from .cache import Cache, MemoryCache, make_cache_key
+from .cache import Cache, MemoryCache
 from .raw_client import RawApiClient, RawResponse
 from .transport import AsyncTransport, TransportConfig
 
@@ -35,7 +35,12 @@ class PSSClient:
         self.config = config or PssClientConfig()
         self.transport = transport or AsyncTransport(transport_config)
         self.cache = cache or MemoryCache()
-        self.raw = RawApiClient(self.transport, self.config.production_server)
+        self.raw = RawApiClient(
+            self.transport,
+            self.config.production_server,
+            cache=self.cache,
+            cache_ttl=self.config.cache_ttl,
+        )
 
     async def call(
         self,
@@ -50,13 +55,7 @@ class PSSClient:
         ttl: float | None = None,
         headers: Mapping[str, str] | None = None,
     ) -> RawResponse:
-        key = make_cache_key(service, method, http_method, params or {}, json, content, headers or {})
-        if use_cache:
-            cached = await self.cache.get(key)
-            if isinstance(cached, RawResponse):
-                return cached
-
-        response = await self.raw.call(
+        return await self.raw.call(
             service,
             method,
             params=params,
@@ -64,10 +63,9 @@ class PSSClient:
             content=content,
             http_method=http_method,
             headers=headers,
+            use_cache=use_cache,
+            ttl=ttl,
         )
-        if use_cache and response.status_code < 400:
-            await self.cache.set(key, response, self.config.cache_ttl if ttl is None else ttl)
-        return response
 
     async def aclose(self) -> None:
         await self.transport.aclose()
