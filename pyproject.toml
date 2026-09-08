@@ -1,6 +1,6 @@
 [project]
 name = "pssapi"
-version = "0.7.2"
+version = "0.8.0"
 description = "A wrapper for the Pixel Starships API."
 authors = [
     { name = "The worst.", email = "theworstpss@gmail.com" },
@@ -36,6 +36,8 @@ classifiers = [
 dependencies = [
     "aiohttp>=3.10.5",
     "APScheduler>=3.10.4",
+    "httpx>=0.27.0",
+    "pydantic>=2.7.0",
     "pytz>=2024.1",
     "websockets>=13.0",
 ]
@@ -74,13 +76,8 @@ allow-direct-references = true
 packages = ["src/pssapi"]
 
 [tool.ruff]
-# Target your specific Python version
 target-version = "py311"
-
-# Combined line-length from black, isort, and flake8
 line-length = 200
-
-# Combined directory exclusions (Ruff handles most of these by default)
 exclude = [
     ".git",
     "__pycache__",
@@ -89,27 +86,19 @@ exclude = [
     ".direnv",
     ".venv",
 ]
-
-# Replaces tool.isort.src_paths
 src = ["./src", "./tests", "./showcase.py"]
 
 [tool.ruff.lint]
-# Replaces flake8.select and our previous tool selections
-# B = flake8-bugbear, C = mccabe/flake8-comprehensions, E/W/F = flake8 defaults, I = isort
 select = ["B", "C", "E", "F", "W", "I"]
 ignore = ["B017", "B024", "C408"]
 
 [tool.ruff.lint.mccabe]
-# Replaces flake8.max-complexity = 10
 max-complexity = 10
 
 [tool.ruff.lint.per-file-ignores]
-# Replaces autoflake.ignore-init-module-imports = true
-# Modern Ruff handles __init__.py tracking cleanly via explicit per-file overrides
 "__init__.py" = ["F401"]
 
 [tool.ruff.lint.isort]
-# Replaces tool.isort.lines_after_imports = 2
 lines-after-imports = 2
 
 [tool.vulture]
