@@ -62,9 +62,6 @@ class PssApiClient(_client_base.PssApiClientBase):
     async def __aexit__(self, *_: object) -> None:
         await self.close()
 
-    def _update_services(self):
-        super()._update_services()
-
     async def device_login(self, device_key: str, checksum_key: str) -> _entities.UserLogin:
         """Shortcut to self.user_service.device_login(), calculating the required information."""
         client_date_time = _utils.get_utc_now()
