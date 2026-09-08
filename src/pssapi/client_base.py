@@ -1,12 +1,11 @@
+import asyncio as _asyncio
 from datetime import datetime as _datetime
-from threading import Lock as _Lock
 from typing import Union as _Union
 
 import pssapi.core as _core
 import pssapi.entities as _entities
 import pssapi.enums as _enums
 import pssapi.services as _services
-import pssapi.services.raw as _services_raw
 import pssapi.utils as _utils
 
 
@@ -17,11 +16,11 @@ class PssApiClientBase:
         self.__device_type: _enums.DeviceType = device_type or _enums.DeviceType.ANDROID
         self.__language_key: _enums.LanguageKey = language_key or _enums.LanguageKey.ENGLISH
         self.__production_server: str = None
-        self.production_server: str = production_server  # if it's none, it'll be checked and cached for any API call
+        self.production_server: str = production_server
         self.__use_cache: bool = use_cache or False
-        self.__latest_version_cached: str = None
+        self.__latest_version_cached: _entities.Setting = None
         self.__latest_version_cached_at: _datetime = None
-        self.__latest_version_cache_lock: _Lock = _Lock()
+        self.__latest_version_cache_lock = _asyncio.Lock()
 
         self._update_services()
 
@@ -175,19 +174,27 @@ class PssApiClientBase:
 
     async def get_latest_version(self, use_cache: bool = True) -> "_entities.Setting":
         if self.__use_cache and use_cache:
-            with self.__latest_version_cache_lock:
+            async with self.__latest_version_cache_lock:
                 utc_now = _utils.get_utc_now()
-                if (
-                    not self.__latest_version_cached
-                    or self.__latest_version_cached_at is None
-                    or (self.__latest_version_cached_at - utc_now).total_seconds() >= PssApiClientBase.__PRODUCTION_SERVER_CACHE_DURATION
-                ):
-                    production_server = await _core.get_production_server(self.device_type, self.language_key)
-                    self.__latest_version_cached = await _services_raw.SettingServiceRaw.get_latest_version_3(production_server, self.device_type, self.language_key)
+                cache_is_fresh = (
+                    self.__latest_version_cached is not None
+                    and self.__latest_version_cached_at is not None
+                    and (utc_now - self.__latest_version_cached_at).total_seconds()
+                    < PssApiClientBase.__PRODUCTION_SERVER_CACHE_DURATION
+                )
+                if not cache_is_fresh:
+                    production_server = await _core.get_production_server(
+                        self.device_type,
+                        self.language_key,
+                    )
+                    self.__latest_version_cached = await self.setting_service._get_latest_version_from_server(
+                        production_server,
+                        self.device_type,
+                    )
                     self.__latest_version_cached_at = _utils.get_utc_now()
                 return self.__latest_version_cached
-        else:
-            return await self.setting_service.get_latest_version(self.device_type)
+
+        return await self.setting_service.get_latest_version(self.device_type)
 
     async def get_production_server(self, use_cache: bool = True) -> str:
         if self.__production_server:
