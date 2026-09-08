@@ -55,7 +55,7 @@ def cache_endpoint(version_property_name: str):
                 endpoint_cache = service_cache.get(endpoint_name, {})
                 data = endpoint_cache.get(endpoint_data_version)
 
-                if not data:
+                if data is None:
                     data = await func(self, *args, **kwargs)
                     if endpoint_cache:
                         service_cache[endpoint_name] = {}
@@ -66,7 +66,7 @@ def cache_endpoint(version_property_name: str):
                     return dict(data)
                 return data
             else:
-                return await func(*args, **kwargs)
+                return await func(self, *args, **kwargs)
 
         return wrapper_endpoint_cache
 
