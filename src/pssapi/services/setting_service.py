@@ -11,8 +11,7 @@ from ..parsing import parse_entity_list as _parse_entity_list
 
 class SettingService(_service_base.CacheableServiceBase):
     async def get_latest_version(self, device_type: str) -> _Setting:
-        production_server = await self.get_production_server()
-        result = await self.client.raw.call(
+        response = await self.client.raw.call(
             "SettingService",
             "GetLatestVersion4",
             params={
@@ -21,7 +20,7 @@ class SettingService(_service_base.CacheableServiceBase):
             },
             use_cache=False,
         )
-        parsed = _parse_entity_list(result, "Setting", _Setting)
+        parsed = _parse_entity_list(response, "Setting", _Setting)
         if not parsed:
             raise _utils.exceptions.PssApiError("SettingService/GetLatestVersion4 returned no Setting")
         return parsed[0]
