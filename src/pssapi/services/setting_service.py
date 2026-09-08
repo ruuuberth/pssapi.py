@@ -10,7 +10,11 @@ from ..parsing import parse_entity_list as _parse_entity_list
 
 
 class SettingService(_service_base.CacheableServiceBase):
-    async def get_latest_version(self, device_type: str) -> _Setting:
+    async def _get_latest_version_from_server(
+        self,
+        production_server: str,
+        device_type: str,
+    ) -> _Setting:
         response = await self.client.raw.call(
             "SettingService",
             "GetLatestVersion4",
@@ -24,6 +28,14 @@ class SettingService(_service_base.CacheableServiceBase):
         if not parsed:
             raise _utils.exceptions.PssApiError("SettingService/GetLatestVersion4 returned no Setting")
         return parsed[0]
+
+    async def get_latest_version(self, device_type: str) -> _Setting:
+        production_server = self.client.production_server
+        if not production_server:
+            from .. import core as _core
+
+            production_server = await _core.get_production_server(device_type, self.language_key)
+        return await self._get_latest_version_from_server(production_server, device_type)
 
     @_service_base.cache_endpoint("NewsDesignVersion")
     async def list_all_news_designs(
