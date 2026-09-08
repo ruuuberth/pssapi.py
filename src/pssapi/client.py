@@ -38,6 +38,8 @@ class PssApiClient(_client_base.PssApiClientBase):
             production_server=production_server
             or self._modern_config.production_server
             or "api.pixelstarships.com",
+            cache=self._modern_cache,
+            cache_ttl=self._modern_config.cache_ttl,
         )
 
     @property
