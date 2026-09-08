@@ -23,12 +23,12 @@ class PssApiClient(_client_base.PssApiClientBase):
         super().__init__(device_type, language_key, production_server)
         self._modern_config = config or PssApiConfig.from_env()
         self._modern_transport = PssApiTransport(self._modern_config)
-        self._modern_cache = cache
+        self._modern_cache = cache if cache is not None else MemoryCache(self._modern_config.cache_ttl)
         self._raw_client = RawApiClient(
             self._modern_transport,
             production_server=production_server,
             config=self._modern_config,
-            cache=cache,
+            cache=self._modern_cache,
         )
 
     @property
