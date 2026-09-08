@@ -8,6 +8,7 @@ from ..entities import CharacterDesign as _CharacterDesign
 from ..entities import CharacterDesignAction as _CharacterDesignAction
 from ..entities import DrawDesign as _DrawDesign
 from ..entities import Prestige as _Prestige
+from ..parsing import parse_entity_list as _parse_entity_list
 
 
 class CharacterService(_service_base.CacheableServiceBase):
@@ -42,11 +43,7 @@ class CharacterService(_service_base.CacheableServiceBase):
             params=params,
             use_cache=False,
         )
-        return _service_base.parse_entity_list(
-            response,
-            "CharacterDesignActions",
-            _CharacterDesignAction,
-        )
+        return _parse_entity_list(response, "CharacterDesignActions", _CharacterDesignAction)
 
     @_service_base.cache_endpoint("CharacterDesignVersion")
     async def list_all_character_designs(
@@ -67,11 +64,7 @@ class CharacterService(_service_base.CacheableServiceBase):
             params=params,
             use_cache=False,
         )
-        return _service_base.parse_entity_list(
-            response,
-            "CharacterDesigns",
-            _CharacterDesign,
-        )
+        return _parse_entity_list(response, "CharacterDesigns", _CharacterDesign)
 
     @_service_base.cache_endpoint("DrawDesignVersion")
     async def list_all_draw_designs(
@@ -92,7 +85,7 @@ class CharacterService(_service_base.CacheableServiceBase):
             params=params,
             use_cache=False,
         )
-        return _service_base.parse_entity_list(response, "DrawDesigns", _DrawDesign)
+        return _parse_entity_list(response, "DrawDesigns", _DrawDesign)
 
     async def prestige_character_from(self, character_design_id: int) -> _List[_Prestige]:
         response = await self.client.raw.call(
@@ -101,7 +94,7 @@ class CharacterService(_service_base.CacheableServiceBase):
             params={"characterDesignId": character_design_id},
             use_cache=False,
         )
-        return _service_base.parse_entity_list(response, "Prestiges", _Prestige)
+        return _parse_entity_list(response, "Prestiges", _Prestige)
 
     async def prestige_character_to(self, character_design_id: int) -> _List[_Prestige]:
         response = await self.client.raw.call(
@@ -110,4 +103,4 @@ class CharacterService(_service_base.CacheableServiceBase):
             params={"characterDesignId": character_design_id},
             use_cache=False,
         )
-        return _service_base.parse_entity_list(response, "Prestiges", _Prestige)
+        return _parse_entity_list(response, "Prestiges", _Prestige)
