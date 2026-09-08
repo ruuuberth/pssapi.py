@@ -19,6 +19,7 @@ class PssApiConfig:
     max_keepalive_connections: int = 20
     retries: int = 2
     retry_backoff: float = 0.25
+    cache_ttl: float | None = 60.0
     user_agent: str = "pssapi/modern"
 
     @classmethod
@@ -30,6 +31,9 @@ class PssApiConfig:
             except ValueError as exc:
                 raise ValueError(f"Invalid PSSAPI_{name}: {value!r}") from exc
 
+        cache_raw = os.getenv("PSSAPI_CACHE_TTL", "60").strip().lower()
+        cache_ttl = None if cache_raw in {"", "none", "null", "off"} else number("CACHE_TTL", "60", float)
+
         return cls(
             production_server=os.getenv("PSSAPI_PRODUCTION_SERVER") or None,
             timeout=number("TIMEOUT", "30", float),
@@ -38,5 +42,6 @@ class PssApiConfig:
             max_keepalive_connections=number("MAX_KEEPALIVE_CONNECTIONS", "20", int),
             retries=number("RETRIES", "2", int),
             retry_backoff=number("RETRY_BACKOFF", "0.25", float),
+            cache_ttl=cache_ttl,
             user_agent=os.getenv("PSSAPI_USER_AGENT", "pssapi/modern"),
         )
