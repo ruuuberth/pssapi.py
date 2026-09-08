@@ -3,11 +3,15 @@ from typing import Any as _Any
 from typing import Callable as _Callable
 from typing import Dict as _Dict
 from typing import ParamSpec as _ParamSpec
+from typing import Type as _Type
 from typing import TypeVar as _TypeVar
+from xml.etree import ElementTree as _ElementTree
 
 import pssapi.client as _client
 import pssapi.entities as _entities
 import pssapi.enums as _enums
+import pssapi.utils as _utils
+from pssapi.raw_client import RawResponse as _RawResponse
 
 
 T = _TypeVar("T")
@@ -40,6 +44,40 @@ class CacheableServiceBase(ServiceBase):
         super().__init__(client)
         self._SERVICE_CACHE: _Dict[str, _Dict[int, _Any]] = {}
         self._enable_endpoint_cache: bool = enable_endpoint_cache or False
+
+
+def parse_entity_list(response: _RawResponse, parent_tag: str, entity_type: _Type[T]) -> list[T]:
+    """Parse a PSS XML collection response into typed entities."""
+    response.raise_for_status()
+    raw_xml = response.text
+    try:
+        root = _ElementTree.fromstring(raw_xml)
+    except _ElementTree.ParseError as exc:
+        raise _utils.exceptions.PssXmlError(raw_xml, exc) from exc
+
+    if root.tag.startswith("{http://www.w3.org/1999/xhtml}html"):
+        raise _utils.exceptions.PssApiError(f"A server error occured: {raw_xml}")
+    if "errorMessage" in root.attrib:
+        raise _utils.exceptions.PssApiError(root.attrib["errorMessage"])
+
+    parent_node = root if root.tag == parent_tag else root.find(f".//{parent_tag}")
+    if parent_node is None:
+        return []
+
+    result: list[T] = []
+    for node in parent_node:
+        raw_entity = _raw_entity_xml(node)
+        entity = entity_type(raw_entity)
+        entity.node = node
+        result.append(entity)
+    return result
+
+
+def _raw_entity_xml(node: _ElementTree.Element) -> dict[str, _Any]:
+    result: dict[str, _Any] = dict(node.attrib)
+    for child in node:
+        result.setdefault(child.tag, []).append(_raw_entity_xml(child))
+    return result
 
 
 def cache_endpoint(version_property_name: str):
