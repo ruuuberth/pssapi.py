@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 from . import client_base as _client_base
 from . import entities as _entities
 from . import enums as _enums
 from . import utils as _utils
 from .cache import MemoryCache
 from .config import PssApiConfig
-from .raw.client import RawApiClient
-from .transport import PssApiTransport
+from .raw_client import RawApiClient
+from .transport import AsyncTransport, TransportConfig
 
 
 class PssApiClient(_client_base.PssApiClientBase):
-    """Pixel Starships API client with legacy services and a modern raw transport."""
+    """Pixel Starships API client with legacy services and the modern transport."""
 
     def __init__(
         self,
@@ -22,13 +24,20 @@ class PssApiClient(_client_base.PssApiClientBase):
     ):
         super().__init__(device_type, language_key, production_server)
         self._modern_config = config or PssApiConfig.from_env()
-        self._modern_transport = PssApiTransport(self._modern_config)
-        self._modern_cache = cache if cache is not None else MemoryCache(self._modern_config.cache_ttl)
+        transport_config = TransportConfig(
+            timeout=self._modern_config.timeout,
+            max_connections=self._modern_config.max_connections,
+            max_keepalive_connections=self._modern_config.max_keepalive_connections,
+            retries=self._modern_config.retries,
+            retry_backoff=self._modern_config.retry_backoff,
+        )
+        self._modern_transport = AsyncTransport(transport_config)
+        self._modern_cache = cache if cache is not None else MemoryCache()
         self._raw_client = RawApiClient(
             self._modern_transport,
-            production_server=production_server,
-            config=self._modern_config,
-            cache=self._modern_cache,
+            production_server=production_server
+            or self._modern_config.production_server
+            or "api.pixelstarships.com",
         )
 
     @property
@@ -37,16 +46,15 @@ class PssApiClient(_client_base.PssApiClientBase):
         return self._raw_client
 
     @property
-    def transport(self) -> PssApiTransport:
+    def transport(self) -> AsyncTransport:
         """Reusable pooled HTTP transport used by the modern raw client."""
         return self._modern_transport
 
     async def close(self) -> None:
         """Release pooled HTTP connections created by the modern transport."""
-        await self._modern_transport.close()
+        await self._modern_transport.aclose()
 
     async def __aenter__(self) -> "PssApiClient":
-        await self._modern_transport.start()
         return self
 
     async def __aexit__(self, *_: object) -> None:
@@ -56,15 +64,17 @@ class PssApiClient(_client_base.PssApiClientBase):
         super()._update_services()
 
     async def device_login(self, device_key: str, checksum_key: str) -> _entities.UserLogin:
-        """Shortcut to self.user_service.device_login(), calculating the required information.
-
-        Args:
-            device_key (str): A UUID representing a "device".
-            checksum_key (str): A secret required to generate a checksum for the login.
-
-        Returns:
-            _entities.UserLogin: An object containing information on the last user logged on the device with the provided `device_key` and an access token for that user.
-        """
+        """Shortcut to self.user_service.device_login(), calculating the required information."""
         client_date_time = _utils.get_utc_now()
-        checksum = self.user_service.utils.create_device_login_checksum(device_key, self.device_type, client_date_time, checksum_key)
-        return await self.user_service.device_login(checksum, client_date_time, device_key, self.device_type)
+        checksum = self.user_service.utils.create_device_login_checksum(
+            device_key,
+            self.device_type,
+            client_date_time,
+            checksum_key,
+        )
+        return await self.user_service.device_login(
+            checksum,
+            client_date_time,
+            device_key,
+            self.device_type,
+        )
