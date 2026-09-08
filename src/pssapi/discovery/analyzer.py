@@ -33,6 +33,10 @@ class EndpointSchema:
     response_fields: dict[str, FieldSchema] = field(default_factory=dict)
     samples: int = 0
 
+    @property
+    def optional_response_fields(self) -> set[str]:
+        return {name for name, item in self.response_fields.items() if item.occurrences < self.samples}
+
 
 @dataclass(slots=True)
 class DiscoveryReport:
@@ -45,6 +49,7 @@ class DiscoveryReport:
                     "methods": sorted(schema.methods),
                     "request_params": sorted(schema.request_params),
                     "samples": schema.samples,
+                    "optional_response_fields": sorted(schema.optional_response_fields),
                     "response_fields": {
                         key: {
                             "types": sorted(value.types),
@@ -83,14 +88,11 @@ class DiscoveryAnalyzer:
 
     def analyze_records(self, requests: Iterable[Mapping[str, Any]], responses: Iterable[Mapping[str, Any]]) -> DiscoveryReport:
         report = DiscoveryReport(endpoints={})
-        request_by_id = {str(r["id"]): r for r in requests if r.get("id") is not None}
+        request_by_id = {str(r.get("id")): r for r in requests if r.get("id") is not None}
         for response in responses:
-            request = request_by_id.get(str(response.get("id")), response)
-            endpoint = normalize_endpoint(
-                request.get("service"),
-                request.get("method"),
-                request.get("path"),
-            )
+            request_id = response.get("id", response.get("request_id"))
+            request = request_by_id.get(str(request_id), response)
+            endpoint = normalize_endpoint(request.get("service"), request.get("method"), request.get("path"))
             schema = report.endpoints.setdefault(endpoint, EndpointSchema(endpoint=endpoint))
             schema.samples += 1
             schema.methods.add(str(request.get("http_method", "GET")).upper())
@@ -114,3 +116,9 @@ class DiscoveryAnalyzer:
             field_schema.occurrences += 1
             field_schema.types.add(infer_type(child))
             field_schema.nullable |= child is None
+            if isinstance(child, dict):
+                self._observe_fields(fields, child, name)
+            elif isinstance(child, list):
+                for item in child:
+                    if isinstance(item, dict):
+                        self._observe_fields(fields, item, name + "[]")
