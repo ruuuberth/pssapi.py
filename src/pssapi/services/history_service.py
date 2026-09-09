@@ -6,6 +6,7 @@ from .raw import HistoryServiceRaw as _HistoryServiceRaw
 
 class HistoryService(_service_base.ServiceBase):
     async def price_history(self, item_design_id: int) -> _History:
+        """Retrieve the marketplace price history of an item design."""
         production_server = await self.get_production_server()
         result = await _HistoryServiceRaw.price_history(production_server, item_design_id)
         return result

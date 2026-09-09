@@ -39,16 +39,19 @@ class UserService(_service_base.ServiceBase):
     utils = _UserServiceUtils()
 
     async def accept_friend_request(self, access_token: str, friend_user_id: int) -> _entities.Friend:
+        """Accept a pending friend request and return the resulting friend."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.accept_friend_request(production_server, access_token, friend_user_id)
         return result
 
     async def add_friend(self, access_token: str, friend_user_id: int) -> _entities.Friend:
+        """Send a friend request to a user and return the resulting friend entry."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.add_friend_2(production_server, access_token, friend_user_id)
         return result
 
     async def decline_friend_request(self, access_token: str, friend_user_id: int) -> _entities.Friend:
+        """Decline a pending friend request and return the resulting friend entry."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.decline_friend_request(production_server, access_token, friend_user_id)
         return result
@@ -112,6 +115,7 @@ class UserService(_service_base.ServiceBase):
         refresh_token: str = None,
         signal: bool = None,
     ) -> _entities.UserLogin:
+        """Log in with a device and return the user login, including access token and user data."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.device_login_17(
             production_server,
@@ -155,30 +159,36 @@ class UserService(_service_base.ServiceBase):
         _List[_entities.UserSkin],
         _List[_entities.UserStarSystem],
     ]:
+        """Retrieve a user's full savegame data: achievements, alliance tasks, battles, crew, items, missions, research, rooms, situations, star systems, tasks, and skins."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_all_user_data_first_2(production_server, access_token, user_id)
         return result
 
     async def list_friends(self, user_id: int, access_token: str) -> _entities.ListFriends:
+        """Retrieve a user's friends list, including pending friend requests."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_friends(production_server, user_id, access_token)
         return result
 
     async def list_skin_sets(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_entities.SkinSet]:
+        """List all skin sets, the grouped collections of purchasable crew skins."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_skin_sets_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
 
     async def list_skins(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_entities.Skin]:
+        """List all skins, the cosmetic styles available for crew characters."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.list_skins_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
 
     async def remove_friend(self, access_token: str, friend_user_id: int) -> None:
+        """Remove a user from the friend list."""
         production_server = await self.get_production_server()
         await _UserServiceRaw.remove_friend(production_server, access_token, friend_user_id)
 
     async def search_users(self, search_string: str) -> _List[_entities.User]:
+        """Search users by (partial) name and return the matching user profiles."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.search_users(production_server, search_string)
         return result
@@ -203,6 +213,7 @@ class UserService(_service_base.ServiceBase):
         signal: bool = None,
         ticket: str = None,
     ) -> _entities.UserLogin:
+        """Log in with a Steam account ticket and return the user login, including access token and user data."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.steam_login_8(
             production_server,
@@ -229,6 +240,7 @@ class UserService(_service_base.ServiceBase):
     async def user_email_password_authorize(
         self, access_token: str, checksum: str, client_date_time: _datetime.datetime, device_key: str, email: str, is_web: bool, language_key: str, password: str
     ) -> _entities.UserEmailPasswordAuthorize:
+        """Authorize a user account with email and password and return the authorization result."""
         production_server = await self.get_production_server()
         result = await _UserServiceRaw.user_email_password_authorize_4(
             production_server, access_token, checksum, _utils.datetime.convert_to_pss_timestamp(client_date_time), device_key, email, is_web, language_key, password
