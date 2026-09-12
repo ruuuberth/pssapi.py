@@ -11,7 +11,7 @@ from .raw import SettingServiceRaw as _SettingServiceRaw
 
 class SettingService(_service_base.CacheableServiceBase):
     async def get_latest_version(self, device_type: str) -> _Setting:
-        """Retrieve the latest game client version settings for a device type."""
+        """Retrieve the latest game settings: minimum client version, server version and current design versions for all content types."""
         production_server = await self.get_production_server()
         result = await _SettingServiceRaw.get_latest_version_4(production_server, device_type, self.language_key)
         return result

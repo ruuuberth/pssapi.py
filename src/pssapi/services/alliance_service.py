@@ -12,7 +12,7 @@ from .raw import AllianceServiceRaw as _AllianceServiceRaw
 
 class AllianceService(_service_base.ServiceBase):
     async def get_alliance(self, access_token: str, alliance_id: int) -> _Alliance:
-        """Retrieve a single alliance (player guild), by alliance ID."""
+        """Retrieve a single alliance: name, trophy, championship score, description, member count, ranking and division."""
         production_server = await self.get_production_server()
         result = await _AllianceServiceRaw.get_alliance(production_server, access_token, alliance_id)
         return result

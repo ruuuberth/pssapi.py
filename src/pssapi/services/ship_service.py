@@ -20,7 +20,7 @@ class ShipService(_service_base.CacheableServiceBase):
         return result
 
     async def get_ship_by_user_id(self, access_token: str, client_date_time: _datetime.datetime, user_id: int) -> _Ship:
-        """Retrieve a user's starship, by user ID."""
+        """Retrieve a user's starship: hull design, level, hp, power score, star system, shield and cargo items."""
         production_server = await self.get_production_server()
         result = await _ShipServiceRaw.get_ship_by_user_id(production_server, access_token, _utils.datetime.convert_to_pss_timestamp(client_date_time), user_id)
         return result

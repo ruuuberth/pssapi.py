@@ -21,7 +21,7 @@ class MissionService(_service_base.CacheableServiceBase):
 
     @_service_base.cache_endpoint("MissionDesignVersion")
     async def list_all_mission_designs(self, client_date_time: _datetime.datetime = None, design_version: int = None) -> _List[_MissionDesign]:
-        """List all mission designs (mission blueprints), as a versioned design list."""
+        """List all mission designs, the story missions (e.g. Lunar Colony, Alpha Quadrant) with title, level requirement and rewards."""
         production_server = await self.get_production_server()
         result = await _MissionServiceRaw.list_all_mission_designs_4(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
         return result
