@@ -1,0 +1,22 @@
+interactions:
+- request:
+    body: null
+    headers: {}
+    method: GET
+    uri: https://api.pixelstarships.com/ShipService/GetCurrentResources?userId=4510693&clientDateTime=2026-09-28T19%3A30%3A00&languageKey=en
+  response:
+    body:
+      string: <ShipService><GetCurrentResources Credits="364584" Gas="112" Minerals="85"
+        Supply="42"/></ShipService>
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private
+      Content-Type:
+      - text/xml; charset=utf-8
+      Server:
+      - Google Frontend
+    status:
+      code: 200
+      message: OK

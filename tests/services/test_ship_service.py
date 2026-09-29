@@ -10,6 +10,18 @@ USER_ID: int = 4510693  # The worst.
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("client")
+@pytest.mark.vcr(record_mode="once")
+async def test_get_current_resources(client: pssapi.PssApiClient):
+    current_resources = await client.ship_service.get_current_resources(USER_ID)
+    assert isinstance(current_resources, pssapi.entities.GetCurrentResources)
+    assert current_resources.credits >= 0
+    assert current_resources.gas >= 0
+    assert current_resources.minerals >= 0
+    assert current_resources.supply >= 0
+
+
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("access_token", "client", "client_date_time")
 @pytest.mark.vcr(record_mode="once")
 async def test_get_ship_by_user_id(access_token: str, client: pssapi.PssApiClient, client_date_time: str):
