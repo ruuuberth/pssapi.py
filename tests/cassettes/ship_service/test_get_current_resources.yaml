@@ -3,11 +3,11 @@ interactions:
     body: null
     headers: {}
     method: GET
-    uri: https://api.pixelstarships.com/ShipService/GetCurrentResources?userId=4510693&clientDateTime=2026-09-28T19%3A30%3A00&languageKey=en
+    uri: https://api.pixelstarships.com/ShipService/GetCurrentResources?userId=4510693&accessToken=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx&clientDateTime=2026-09-28T20%3A15%3A00&languageKey=en
   response:
     body:
-      string: <ShipService><GetCurrentResources Credits="364584" Gas="112" Minerals="85"
-        Supply="42"/></ShipService>
+      string: <ShipService><GetCurrentResources Credits="1435834" Minerals="1402831"
+        Gas="1500" Supply="5" /></ShipService>
     headers:
       Access-Control-Allow-Origin:
       - '*'

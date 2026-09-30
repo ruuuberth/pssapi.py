@@ -25,8 +25,8 @@ LIST_SHIP_LAYOUTS_BASE_PATH: str = "ShipService/ListShipLayouts"
 # ---------- Endpoints ----------
 
 
-async def get_current_resources(production_server: str, user_id: int, **params) -> _GetCurrentResources:
-    params = {"userId": user_id, **params}
+async def get_current_resources(production_server: str, access_token: str, user_id: int, **params) -> _GetCurrentResources:
+    params = {"accessToken": access_token, "userId": user_id, **params}
     result = await _core.get_entities_from_path(
         ((_GetCurrentResources, "GetCurrentResources", False),), "ShipService", production_server, GET_CURRENT_RESOURCES_BASE_PATH, "GET", response_gzipped=False, **params
     )
