@@ -20,6 +20,7 @@ class ShipService(_service_base.CacheableServiceBase):
         return result
 
     async def get_current_resources(self, access_token: str, user_id: int) -> _GetCurrentResources:
+        """Retrieve the current ship resources of a user: credits, gas, minerals and supply."""
         production_server = await self.get_production_server()
         result = await _ShipServiceRaw.get_current_resources(production_server, access_token, user_id)
         return result
