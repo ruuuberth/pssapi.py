@@ -9,6 +9,7 @@ from typing import Tuple as _Tuple
 from ... import core as _core
 from ...entities import Ship as _Ship
 from ...entities import ShipDesign as _ShipDesign
+from ...entities import ShipLayout as _ShipLayout
 from ...entities import User as _User
 
 
@@ -41,6 +42,7 @@ async def list_all_ship_designs_2(production_server: str, client_date_time: str,
     return result
 
 
-async def list_ship_layouts(production_server: str, access_token: str, ship_id: int, **params) -> None:
+async def list_ship_layouts(production_server: str, access_token: str, ship_id: int, **params) -> _List[_ShipLayout]:
     params = {"accessToken": access_token, "shipId": ship_id, **params}
-    await _core.get_entities_from_path((), None, production_server, LIST_SHIP_LAYOUTS_BASE_PATH, "GET", response_gzipped=False, **params)
+    result = await _core.get_entities_from_path(((_ShipLayout, "ShipLayouts", True),), "ShipLayouts", production_server, LIST_SHIP_LAYOUTS_BASE_PATH, "GET", response_gzipped=False, **params)
+    return result
