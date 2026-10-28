@@ -5,6 +5,7 @@ from typing import Union as _Union
 import pssapi.core as _core
 import pssapi.entities as _entities
 import pssapi.enums as _enums
+import pssapi.http_client as _http_client
 import pssapi.services as _services
 import pssapi.services.raw as _services_raw
 import pssapi.utils as _utils
@@ -40,6 +41,16 @@ class PssApiClientBase:
     @production_server.setter
     def production_server(self, value):
         self.__production_server = str(value) if value else None
+
+    @property
+    def http_client(self) -> "_http_client.HttpClient":
+        """The HTTP client used by every request of this event loop.
+
+        It is the shared per-loop session, so every client and service of the same event loop
+        reuses its connection pool. Close it with `await client.aclose()` or by using
+        `async with PssApiClient(...) as client:`.
+        """
+        return _http_client.get_default_http_client()
 
     @property
     def achievement_service(self) -> "_services.AchievementService":
@@ -194,6 +205,19 @@ class PssApiClientBase:
             return self.__production_server
 
         return (await self.get_latest_version(use_cache=use_cache)).production_server
+
+    async def aclose(self) -> None:
+        """Close the HTTP client of the current event loop, releasing its connections.
+
+        A new client is created on demand by the next request.
+        """
+        await _http_client.close_default_http_client()
+
+    async def __aenter__(self) -> "PssApiClientBase":
+        return self
+
+    async def __aexit__(self, *_args) -> None:
+        await self.aclose()
 
     def _update_services(self) -> None:
         self.__achievement_service: _services.AchievementService = _services.AchievementService(self)

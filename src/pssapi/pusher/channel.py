@@ -1,8 +1,7 @@
 from json import loads
 from typing import Callable, Optional
 
-from aiohttp import ClientSession
-
+import pssapi.http_client as http_client
 from pssapi.constants import PUSHER_AUTH_URL
 
 
@@ -39,8 +38,7 @@ class Channel:
         }
         endpoint = f"{self.endpoint}?accessToken={token}"
 
-        async with ClientSession() as session:
-            async with session.post(endpoint, data=data) as response:
-                assert response.ok, "Couldn't authenticate connection"
+        response = await http_client.get_default_http_client().post(endpoint, data=data)
+        assert response.ok, "Couldn't authenticate connection"
 
-                return loads(await response.text())["auth"]
+        return loads(response.text())["auth"]

@@ -5,15 +5,15 @@ from datetime import datetime as _datetime
 from typing import Any as _Any
 from typing import Dict as _Dict
 from typing import Iterable as _Iterable
+from typing import Optional as _Optional
 from typing import Tuple as _Tuple
 from typing import Type as _Type
 from xml.etree import ElementTree as _ElementTree
 
-import aiohttp as _aiohttp
-
 import pssapi.constants as _constants
 import pssapi.entities as _entities
 import pssapi.enums as _enums
+import pssapi.http_client as _http_client
 import pssapi.utils as _utils
 
 
@@ -38,9 +38,10 @@ async def get_entities_from_path(
     method: str,
     request_content: str = None,
     response_gzipped: bool = False,
+    http_client: _Optional["_http_client.HttpClient"] = None,
     **params,
 ):
-    raw_xml = await __get_data_from_path(production_server, path, method, content=request_content, response_gzipped=response_gzipped, **params)
+    raw_xml = await __get_data_from_path(production_server, path, method, content=request_content, response_gzipped=response_gzipped, http_client=http_client, **params)
 
     root = _ElementTree.fromstring(raw_xml)
     if root is None or root.tag is None or root.tag.startswith("{http://www.w3.org/1999/xhtml}html"):
@@ -93,14 +94,16 @@ def create_json_request_content(structure: str, params: _Dict[str, _Any]) -> str
     return _json.dumps(d)
 
 
-async def __get_data_from_path(production_server: str, path: str, method: str, content: str = None, response_gzipped: bool = False, **params) -> str:
+async def __get_data_from_path(
+    production_server: str, path: str, method: str, content: str = None, response_gzipped: bool = False, http_client: _Optional["_http_client.HttpClient"] = None, **params
+) -> str:
     if path:
         path = path.strip("/")
     url = f"https://{production_server}/{path}"
-    return await __get_data_from_url(url, method, content=content, response_gzipped=response_gzipped, **params)
+    return await __get_data_from_url(url, method, content=content, response_gzipped=response_gzipped, http_client=http_client, **params)
 
 
-async def __get_data_from_url(url: str, method: str, content: str = None, response_gzipped: bool = False, **params) -> str:
+async def __get_data_from_url(url: str, method: str, content: str = None, response_gzipped: bool = False, http_client: _Optional["_http_client.HttpClient"] = None, **params) -> str:
     # filter parameters with a None value and format datetime
     filtered_params = {}
     for key, value in params.items():
@@ -112,14 +115,20 @@ async def __get_data_from_url(url: str, method: str, content: str = None, respon
         else:
             filtered_params[key] = value
 
-    async with _aiohttp.ClientSession() as session:
-        if method == "GET":
-            async with session.get(url, params=filtered_params) as response:
-                response_data = await response.read()
-        elif method == "POST":
-            request_data = content.encode("utf-8") if content else None
-            async with session.post(url, data=request_data, params=filtered_params) as response:
-                response_data = await response.read()
+    http_client = http_client or _http_client.get_default_http_client()
+
+    if method == "GET":
+        response = await http_client.get(url, params=filtered_params)
+    elif method == "POST":
+        request_data = content.encode("utf-8") if content else None
+        response = await http_client.post(url, data=request_data, params=filtered_params)
+    else:
+        raise ValueError(f"Unsupported HTTP method '{method}': only 'GET' and 'POST' are implemented.")
+
+    if not response.ok:
+        raise _utils.exceptions.PssApiError(__get_http_error_message(response, method, url))
+
+    response_data = response.body
 
     if response_gzipped:
         try:
@@ -130,6 +139,19 @@ async def __get_data_from_url(url: str, method: str, content: str = None, respon
 
     decoded_data = response_data.decode("utf-8")
     return decoded_data
+
+
+def __get_http_error_message(response: "_http_client.HttpResponse", method: str, url: str) -> str:
+    # The API explains some failures in the body of the error response, so keep that message.
+    try:
+        root = _ElementTree.fromstring(response.body)
+        error_message = root.attrib.get("errorMessage")
+        if error_message:
+            return error_message
+    except Exception:
+        pass  # Not an XML body: fall back to the status code.
+
+    return f"The server returned HTTP {response.status} for {method} {url}."
 
 
 def __get_raw_entity_xml(node: _ElementTree.Element) -> dict[str, str]:
