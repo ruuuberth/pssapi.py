@@ -1,3 +1,14 @@
+# Version 0.7.4
+## Updated Library
+The library has not been updated to a more recent version of Pixel Starships.
+### Changes to Services
+- Added `ShipService.list_ship_layouts`, returning the saved ship layouts of a ship
+### Changes to Raw Services
+- Fixed `ShipServiceRaw.list_ship_layouts`, which parsed the `ShipLayouts` collection as a single entity and discarded the response, returning `None`
+### Changes to Entities
+- Added `ShipLayout`, exposing `ShipLayoutId`, `ShipId`, `ShipDesignId`, `Xml`, `ShipLayoutName`, `ShipLayoutType` and `HasLabRoom`
+### Changes to Raw Entities
+- Added `ShipLayoutRaw`
 # Version 0.7.3
 ## Updated Library
 The library has not been updated to a more recent version of Pixel Starships.
