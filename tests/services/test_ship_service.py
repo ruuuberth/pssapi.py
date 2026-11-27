@@ -7,6 +7,26 @@ import pssapi
 
 SHIP_DESIGN_NAME: str = "Oumaumau Progenitor Extended"
 USER_ID: int = 4510693  # The worst.
+# ListShipLayouts only returns the layouts of a ship owned by the access
+# token's owner, so this test must be recorded with the ship id of the
+# account paired to PSS_ACCESS_TOKEN.
+SHIP_LAYOUTS_SHIP_ID: int = 8761013
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("access_token", "client")
+@pytest.mark.vcr(record_mode="once")
+async def test_list_ship_layouts(access_token: str, client: pssapi.PssApiClient):
+    ship_layouts = await client.ship_service.list_ship_layouts(access_token, SHIP_LAYOUTS_SHIP_ID)
+    assert isinstance(ship_layouts, list)
+    assert len(ship_layouts) > 0
+    assert isinstance(ship_layouts[0], pssapi.entities.ShipLayout)
+    ship_layout = ship_layouts[0]
+    assert ship_layout.ship_layout_id >= 0
+    assert ship_layout.ship_id == SHIP_LAYOUTS_SHIP_ID
+    assert ship_layout.ship_layout_name is not None
+    assert ship_layout.ship_layout_type is not None
+    assert isinstance(ship_layout.has_lab_room, bool)
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,43 @@
+interactions:
+- request:
+    body: null
+    headers: {}
+    method: GET
+    uri: https://api.pixelstarships.com/ShipService/ListShipLayouts?shipId=8761013
+  response:
+    body:
+      string: <ShipService><ListShipLayouts><ShipLayouts><ShipLayout ShipLayoutId="101450"
+        ShipId="8761013" ShipDesignId="292" Xml="" ShipLayoutName="Xin 2TxR" ShipLayoutType="Custom"
+        HasLabRoom="true" /><ShipLayout ShipLayoutId="108547" ShipId="8761013" ShipDesignId="292"
+        Xml="" ShipLayoutName="Xins BTRM" ShipLayoutType="Custom" HasLabRoom="true"
+        /><ShipLayout ShipLayoutId="92808" ShipId="8761013" ShipDesignId="320" Xml=""
+        ShipLayoutName="Original" ShipLayoutType="Custom" HasLabRoom="false" /><ShipLayout
+        ShipLayoutId="99813" ShipId="8761013" ShipDesignId="320" Xml="" ShipLayoutName="Hunter"
+        ShipLayoutType="Custom" HasLabRoom="true" /><ShipLayout ShipLayoutId="120512"
+        ShipId="8761013" ShipDesignId="386" Xml="" ShipLayoutName="Ship Layout 1"
+        ShipLayoutType="Custom" HasLabRoom="true" /></ShipLayouts></ListShipLayouts></ShipService>
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '827'
+      Content-Type:
+      - application/xml
+      Date:
+      - Sun, 04 Oct 2026 21:09:42 GMT
+      Server:
+      - Kestrel
+      Via:
+      - 1.1 8558d1ba2a2dab6b2b795204a93d7f80.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - 2lMHGPhgVR7hnSY23GNUcQRBqZoRw7O3czEUxPTFbwHdr78R_j6Y_g==
+      X-Amz-Cf-Pop:
+      - CMH68-P5
+      X-Cache:
+      - Miss from cloudfront
+    status:
+      code: 200
+      message: OK
+version: 1

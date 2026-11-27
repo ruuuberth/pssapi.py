@@ -7,6 +7,7 @@ import pssapi.services.service_base as _service_base
 from .. import utils as _utils
 from ..entities import Ship as _Ship
 from ..entities import ShipDesign as _ShipDesign
+from ..entities import ShipLayout as _ShipLayout
 from ..entities import User as _User
 from .raw import ShipServiceRaw as _ShipServiceRaw
 
@@ -36,4 +37,10 @@ class ShipService(_service_base.CacheableServiceBase):
         """List all ship designs, the hull types players can build their starship from."""
         production_server = await self.get_production_server()
         result = await _ShipServiceRaw.list_all_ship_designs_2(production_server, _utils.datetime.convert_to_pss_timestamp(client_date_time), design_version, self.language_key)
+        return result
+
+    async def list_ship_layouts(self, access_token: str, ship_id: int) -> _List[_ShipLayout]:
+        """List the saved ship layouts of a ship: layout id, ship id, design id, name, type and lab flag."""
+        production_server = await self.get_production_server()
+        result = await _ShipServiceRaw.list_ship_layouts(production_server, access_token, ship_id)
         return result

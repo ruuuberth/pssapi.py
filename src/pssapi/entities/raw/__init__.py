@@ -55,6 +55,7 @@ from .sale_raw import SaleRaw
 from .season_design_raw import SeasonDesignRaw
 from .setting_raw import SettingRaw
 from .ship_design_raw import ShipDesignRaw
+from .ship_layout_raw import ShipLayoutRaw
 from .ship_raw import ShipRaw
 from .situation_design_raw import SituationDesignRaw
 from .situation_raw import SituationRaw
@@ -139,6 +140,7 @@ __all__ = [
     SettingRaw.__name__,
     ShipRaw.__name__,
     ShipDesignRaw.__name__,
+    ShipLayoutRaw.__name__,
     SituationRaw.__name__,
     SituationDesignRaw.__name__,
     SkinRaw.__name__,
